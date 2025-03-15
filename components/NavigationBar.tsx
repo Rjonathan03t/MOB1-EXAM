@@ -10,7 +10,8 @@ export default function NavigationBar() {
             screenOptions={{
                 tabBarScrollEnabled: true,
                 tabBarItemStyle: {
-                    width: 120,
+                    width: 128,
+                    justifyContent:'space-between'
                 },
                 tabBarIndicatorStyle: {
                     backgroundColor: '#ff3131',
@@ -24,9 +25,9 @@ export default function NavigationBar() {
                 }
             }}
         >
-            <Tab.Screen name="Home" component={HomeScreen} />
+            <Tab.Screen name="Sons" component={HomeScreen} />
             <Tab.Screen name="PlayList" component={HomeScreen} />
-            <Tab.Screen name="Parameter" component={HomeScreen} />
+            <Tab.Screen name="Paramètres" component={HomeScreen} />
         </Tab.Navigator>
     );
 }
