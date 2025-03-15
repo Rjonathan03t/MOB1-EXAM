@@ -1,18 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import * as MediaLibrary from 'expo-media-library';
-import useAudioPlayer from '../../hooks/useAudioPlayer';
-import { Image, StyleSheet, Text, Platform, View, TouchableOpacity, FlatList, TextInput, Keyboard } from 'react-native';
-import EvilIcons from 'react-native-vector-icons/EvilIcons';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { StyleSheet, Text, View, TouchableOpacity, FlatList } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { MaterialIcons } from '@expo/vector-icons';
+import useAudioPlayer from '../../hooks/useAudioPlayer';
 
-
-
-export default function HomeScreen(this: any) {
-  const { playSound } = useAudioPlayer();
+export default function HomeScreen() {
+  const { playSound, pauseSound, isPlaying, sound, position } = useAudioPlayer();
   const [audioFiles, setAudioFiles] = useState([]);
-  const [searchText, setSearchText] = useState('');
-
+  const [currentTrack, setCurrentTrack] = useState('');
 
   useEffect(() => {
     const loadAudioFiles = async () => {
@@ -33,94 +29,109 @@ export default function HomeScreen(this: any) {
     loadAudioFiles();
   }, []);
 
-  const handleSearch = () => {
-    console.log('Recherche:', searchText);
-    Keyboard.dismiss();
+
+  const handlePlayPause = (uri: string) => {
+    if (isPlaying && currentTrack === uri) {
+      pauseSound(); 
+    } else {
+      if (currentTrack !== uri) {
+        setCurrentTrack(uri); 
+        playSound(uri, true); 
+      } else {
+        playSound(uri); 
+      }
+    }
+  };
+
+ 
+  const handleSelectTrack = (uri: string) => {
+    if (currentTrack !== uri) {
+      setCurrentTrack(uri); 
+      playSound(uri, true); 
+    }
   };
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView >
-        <View style={styles.topView}>
-          <Image
-            style={styles.logo}
-            source={require('@/assets/images/vazo-logo.png')}
-          />
-          <View style={styles.rightTopBar}>
-            <View style={styles.searchBar}>
-              <TextInput
-                style={styles.input}
-                placeholder="Chercher un son..."
-                value={searchText}
-                onChangeText={setSearchText}
-                onSubmitEditing={handleSearch}
-                autoFocus
-              />
-              <TouchableOpacity>
-                <EvilIcons name="search" size={30} />
-              </TouchableOpacity>
-            </View>
-            <MaterialIcons name="light-mode" size={30} color="black" />
-          </View>
-        </View>
+      <SafeAreaView style={styles.container}>
         <View>
-          <FlatList
-            style={styles.audioFiles}
-            data={audioFiles}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <TouchableOpacity onPress={() => playSound(item.uri)}>
-                <Text>{item.filename}</Text>
-              </TouchableOpacity>
-            )}
-          />
+          <Text style={styles.sonsTitle}>Tous les sons</Text>
         </View>
+
+        <FlatList
+          data={audioFiles}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.audioItem}
+              onPress={() => handleSelectTrack(item.uri)}
+            >
+              <MaterialIcons name="music-note" size={30} color="#ff3131" style={styles.musicIcon} />
+              <Text style={styles.audioText}>{item.filename}</Text>
+            </TouchableOpacity>
+          )}
+        />
+
+        {currentTrack && (
+          <View style={styles.playPauseButtonContainer}>
+            <TouchableOpacity
+              onPress={() => handlePlayPause(currentTrack)}
+              style={styles.playPauseButton}
+            >
+              <MaterialIcons
+                name={isPlaying && currentTrack === sound?.uri ? 'pause' : 'play-arrow'}
+                size={40}
+                color="white"
+              />
+            </TouchableOpacity>
+          </View>
+        )}
       </SafeAreaView>
     </SafeAreaProvider>
   );
 }
+
 const styles = StyleSheet.create({
-  logo: {
-    width: 100,
-    height: 100,
-    marginTop: 6
+  container: {
+    flex: 1,
+    justifyContent: 'space-between', 
   },
-  topView: {
-    display: 'flex',
+  sonsTitle: {
+    fontSize: 30,
+    color: 'black',
+    paddingLeft: 12,
+    marginBottom: 10,
+    borderBottomWidth: 1,
+    borderStyle: 'dotted',
+    borderColor: 'black',
+  },
+  audioItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 10,
     alignItems: 'center',
-    borderBottomWidth:1,
-    borderBottomColor:'black',
-    borderStyle:'solid',
-    height:70
+    padding: 15,
+    marginHorizontal: 20,
+    marginVertical: 5,
+    backgroundColor: 'white',
+    borderRadius: 8,
   },
-  searchBar: {
-    display:'flex',
-    flexDirection:'row',
+  audioText: {
+    width: 250,
+  },
+  musicIcon: {
+    borderRightWidth: 1,
+    borderRightColor: 'black',
+    borderStyle: 'solid',
+  },
+  playPauseButtonContainer: {
     alignItems: 'center',
-    justifyContent:'space-evenly',
-    backgroundColor:'white',
-    borderRadius: 20,
-    borderStyle:'solid',
-    borderColor:'#ff3131',
-    borderWidth:1
+    marginBottom: 20,
   },
-  rightTopBar: {
-    display: 'flex',
-    flexDirection: 'row',
+  playPauseButton: {
+    backgroundColor: '#ff3131',
+    padding: 15,
+    borderRadius: 50,
+    justifyContent: 'center',
     alignItems: 'center',
-    gap: 15,
-    marginRight: 10
-  },
-  audioFiles: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  input: {
-    backgroundColor: 'transparent',
-    borderColor: 'transparent',
-    width: 200,
-    paddingLeft: 12
   },
 });

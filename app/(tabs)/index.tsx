@@ -1,11 +1,13 @@
 import React from 'react';
 import { SafeAreaView } from 'react-native';
-import HomeScreen from './HomeScreen';
+import TopBar from '@/components/TopBar';  // Assurez-vous que le chemin est correct
+import NavigationBar from '@/components/NavigationBar';
 
 export default function App() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <HomeScreen />
+      <TopBar />
+      <NavigationBar />
     </SafeAreaView>
   );
 }
