@@ -6,9 +6,9 @@ import { MaterialIcons } from '@expo/vector-icons';
 import useAudioPlayer from '../../hooks/useAudioPlayer';
 
 export default function HomeScreen() {
-  const { playSound, pauseSound, isPlaying, sound, position } = useAudioPlayer();
+  const { handleSelectTrack, pauseSound, playNext, playPrevious, setTracks, isPlaying, currentIndex } = useAudioPlayer();
   const [audioFiles, setAudioFiles] = useState([]);
-  const [currentTrack, setCurrentTrack] = useState('');
+  const [isTrackSelected, setIsTrackSelected] = useState(false);
 
   useEffect(() => {
     const loadAudioFiles = async () => {
@@ -24,65 +24,47 @@ export default function HomeScreen() {
       });
 
       setAudioFiles(media.assets);
+      setTracks(media.assets.map((item) => item.uri));
     };
 
     loadAudioFiles();
   }, []);
 
-
-  const handlePlayPause = (uri: string) => {
-    if (isPlaying && currentTrack === uri) {
-      pauseSound(); 
-    } else {
-      if (currentTrack !== uri) {
-        setCurrentTrack(uri); 
-        playSound(uri, true); 
-      } else {
-        playSound(uri); 
-      }
-    }
-  };
-
- 
-  const handleSelectTrack = (uri: string) => {
-    if (currentTrack !== uri) {
-      setCurrentTrack(uri); 
-      playSound(uri, true); 
-    }
+  const handleTrackSelection = (uri: string) => {
+    handleSelectTrack(uri);
+    setIsTrackSelected(true); 
   };
 
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
-        <View>
-          <Text style={styles.sonsTitle}>Tous les sons</Text>
-        </View>
-
+        <Text style={styles.sonsTitle}>Tous les sons</Text>
+        
         <FlatList
           data={audioFiles}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <TouchableOpacity
-              style={styles.audioItem}
-              onPress={() => handleSelectTrack(item.uri)}
-            >
+            style={styles.audioItem}
+            onPress={() => handleTrackSelection(item.uri)}>
               <MaterialIcons name="music-note" size={30} color="#ff3131" style={styles.musicIcon} />
               <Text style={styles.audioText}>{item.filename}</Text>
             </TouchableOpacity>
           )}
         />
 
-        {currentTrack && (
-          <View style={styles.playPauseButtonContainer}>
-            <TouchableOpacity
-              onPress={() => handlePlayPause(currentTrack)}
-              style={styles.playPauseButton}
-            >
-              <MaterialIcons
-                name={isPlaying && currentTrack === sound?.uri ? 'pause' : 'play-arrow'}
-                size={40}
-                color="white"
-              />
+        {isTrackSelected && (
+          <View style={styles.controls}>
+            <TouchableOpacity onPress={playPrevious}>
+              <MaterialIcons name="skip-previous" size={40} color="white" />
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={isPlaying ? pauseSound : () => handleSelectTrack(audioFiles[currentIndex]?.uri)}>
+              <MaterialIcons name={isPlaying ? 'pause' : 'play-arrow'} size={40} color="white" />
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={playNext}>
+              <MaterialIcons name="skip-next" size={40} color="white" />
             </TouchableOpacity>
           </View>
         )}
@@ -94,7 +76,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'space-between', 
+    justifyContent: 'space-between',
   },
   sonsTitle: {
     fontSize: 30,
@@ -105,6 +87,16 @@ const styles = StyleSheet.create({
     borderStyle: 'dotted',
     borderColor: 'black',
   },
+  audioText: {
+    width:250,
+  },
+  controls: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    backgroundColor:'#ff3131',
+    paddingVertical:15,
+  },
   audioItem: {
     flexDirection: 'row',
     gap: 10,
@@ -114,24 +106,11 @@ const styles = StyleSheet.create({
     marginVertical: 5,
     backgroundColor: 'white',
     borderRadius: 8,
-  },
-  audioText: {
-    width: 250,
+    elevation:2,
   },
   musicIcon: {
     borderRightWidth: 1,
     borderRightColor: 'black',
     borderStyle: 'solid',
-  },
-  playPauseButtonContainer: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  playPauseButton: {
-    backgroundColor: '#ff3131',
-    padding: 15,
-    borderRadius: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
 });
