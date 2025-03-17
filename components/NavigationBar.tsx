@@ -4,30 +4,35 @@ import HomeScreen from '@/app/(tabs)/HomeScreen';
 
 const Tab = createMaterialTopTabNavigator();
 
-export default function NavigationBar() {
-    return (
-        <Tab.Navigator
-            screenOptions={{
-                tabBarScrollEnabled: true,
-                tabBarItemStyle: {
-                    width: 128,
-                    justifyContent:'space-between'
-                },
-                tabBarIndicatorStyle: {
-                    backgroundColor: '#ff3131',
-                },
-                tabBarStyle: {
-                    marginTop:20,
-                    marginBottom:20,
-                },
-                tabBarLabelStyle: {
-                    color: 'black',
-                }
-            }}
-        >
-            <Tab.Screen name="Sons" component={HomeScreen} />
-            <Tab.Screen name="PlayList" component={HomeScreen} />
-            <Tab.Screen name="Paramètres" component={HomeScreen} />
-        </Tab.Navigator>
-    );
+interface NavigationBarProps {
+  isDarkMode: boolean;
+}
+
+export default function NavigationBar({ isDarkMode }: NavigationBarProps) {
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        tabBarScrollEnabled: true,
+        tabBarItemStyle: {
+          width: 128,
+          justifyContent: 'space-between',
+        },
+        tabBarIndicatorStyle: {
+          backgroundColor: '#ff3131',
+        },
+        tabBarStyle: {
+          marginTop: 20,
+          marginBottom: 20,
+          backgroundColor: isDarkMode ? '#222' : '#fff',
+        },
+        tabBarLabelStyle: {
+          color: isDarkMode ? '#fff' : '#000',
+        },
+      }}
+    >
+      <Tab.Screen name="Sons" component={HomeScreen} />
+      <Tab.Screen name="PlayList" component={HomeScreen} />
+      <Tab.Screen name="Paramètres" component={HomeScreen} />
+    </Tab.Navigator>
+  );
 }

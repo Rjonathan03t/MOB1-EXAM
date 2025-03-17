@@ -3,7 +3,7 @@
     "name": "mob1-exam",
     "slug": "mob1-exam",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/images/vazo-splash-screen.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",

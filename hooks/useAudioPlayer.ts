@@ -1,15 +1,17 @@
 import { Audio } from "expo-av";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export default function useAudioPlayer() {
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [position, setPosition] = useState(0); 
-  const [trackList, setTrackList] = useState<string[]>([]); 
-  const [currentIndex, setCurrentIndex] = useState<number>(0); 
+  const [position, setPosition] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [trackList, setTrackList] = useState<string[]>([]);
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    // Configure l'audio pour jouer en arrière-plan
     const configureAudio = async () => {
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: false,
@@ -23,7 +25,10 @@ export default function useAudioPlayer() {
     configureAudio();
   }, []);
 
-  const playSound = async (uri: string, resetPosition = false) => {
+  const playSound = useCallback(async (uri: string, resetPosition = false) => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+
     try {
       if (sound) {
         await sound.stopAsync();
@@ -36,54 +41,56 @@ export default function useAudioPlayer() {
       );
 
       if (resetPosition) {
-        await newSound.setPositionAsync(0); 
+        await newSound.setPositionAsync(0);
       } else {
-        await newSound.setPositionAsync(position); 
+        await newSound.setPositionAsync(position);
       }
 
       newSound.setOnPlaybackStatusUpdate(handlePlaybackStatusUpdate);
 
       setSound(newSound);
       setIsPlaying(true);
+      setIsLoaded(true);
     } catch (error) {
       console.error("Erreur de lecture audio :", error);
+    } finally {
+      setIsProcessing(false);
     }
-  };
-
-  const pauseSound = async () => {
-    if (sound) {
-      await sound.pauseAsync();
-      setIsPlaying(false);
-    }
-  };
+  }, [sound, position, isProcessing]);
 
   const handlePlaybackStatusUpdate = (status: any) => {
     if (status.isLoaded && status.positionMillis !== undefined) {
-      setPosition(status.positionMillis); 
+      setPosition(status.positionMillis);
+      setDuration(status.durationMillis);
     }
 
     if (status.didJustFinish) {
-      playNext(); 
+      playNext();  // Avance au morceau suivant dès que celui-ci est terminé
+    }
+
+    if (status.isPlaying !== undefined) {
+      setIsPlaying(status.isPlaying);
     }
   };
 
-  const playNext = () => {
-    if (trackList.length > 0) {
-      const nextIndex = (currentIndex + 1) % trackList.length; 
+  const playNext = useCallback(async () => {
+    if (trackList.length > 0 && !isProcessing && isLoaded) {
+      const nextIndex = (currentIndex + 1) % trackList.length; // Avance au morceau suivant
       setCurrentIndex(nextIndex);
-      playSound(trackList[nextIndex], true);
+      await playSound(trackList[nextIndex], true); // Réinitialise la position à 0 pour le nouveau morceau
     }
-  };
+  }, [currentIndex, trackList, playSound, isProcessing, isLoaded]);
 
-  const playPrevious = () => {
-    if (trackList.length > 0) {
+  const playPrevious = async () => {
+    if (trackList.length > 0 && !isProcessing && isLoaded) {
       const prevIndex = (currentIndex - 1 + trackList.length) % trackList.length;
       setCurrentIndex(prevIndex);
-      playSound(trackList[prevIndex], true);
+      await playSound(trackList[prevIndex], true);
     }
   };
 
   const handleSelectTrack = (uri: string) => {
+    if (isProcessing) return;
     const trackIndex = trackList.indexOf(uri);
     if (trackIndex !== currentIndex) {
       setCurrentIndex(trackIndex);
@@ -95,10 +102,30 @@ export default function useAudioPlayer() {
     }
   };
 
+  const pauseSound = async () => {
+    if (sound) {
+      await sound.pauseAsync();
+      setIsPlaying(false);
+    }
+  };
+
   const setTracks = (tracks: string[]) => {
     setTrackList(tracks);
     setCurrentIndex(0);
   };
 
-  return { playSound, pauseSound, playNext, playPrevious, handleSelectTrack, setTracks, isPlaying, sound, position, currentIndex };
+  return {
+    playSound,
+    pauseSound,
+    playNext,
+    playPrevious,
+    handleSelectTrack,
+    setTracks,
+    isPlaying,
+    sound,
+    position,
+    duration,
+    currentIndex,
+    isLoaded,
+  };
 }
