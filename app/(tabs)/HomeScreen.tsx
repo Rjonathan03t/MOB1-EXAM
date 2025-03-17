@@ -169,6 +169,13 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderStyle: 'dotted',
   },
+  songInfo: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginVertical: 10,
+  },
+
   audioText: {
     width: 250,
   },
