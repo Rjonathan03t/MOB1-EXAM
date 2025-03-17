@@ -17,7 +17,7 @@ export default function HomeScreen() {
   const updatePositionRef = useRef(false);
 
   const colorScheme = useColorScheme();
-  
+
   useEffect(() => {
     const loadAudioFiles = async () => {
       const { status } = await MediaLibrary.requestPermissionsAsync();
@@ -39,12 +39,10 @@ export default function HomeScreen() {
   }, []);
 
   const splitArtistAndTitle = (filename) => {
-    // Assumer un format comme "artist - title.mp3"
     const match = filename.match(/^(.+?)\s*-\s*(.+?)\.[a-zA-Z0-9]+$/);
     if (match) {
       return { artist: match[1], title: match[2] };
     }
-    // Si le format ne correspond pas, retourner des valeurs par défaut
     return { artist: 'Inconnu', title: filename };
   };
 
@@ -103,7 +101,6 @@ export default function HomeScreen() {
   const dynamicStyles = isDarkMode ? darkStyles : lightStyles;
   const darkMode = isDarkMode ? 'white' : 'black';
 
-  // Détecter si un son est en cours de lecture
   const isControlsVisible = currentIndex !== null && songInfo !== null;
 
   return (
@@ -124,16 +121,16 @@ export default function HomeScreen() {
           )}
         />
 
-        {isPlaying && songInfo && (
-          <View>
-            <Text style={[styles.songInfo, { color: darkMode }]}>{songInfo.title}</Text>
-            <Text style={[styles.artistInfo, { color: darkMode }]}>{songInfo.artist}</Text>
+        {songInfo && (
+          <View style={{backgroundColor:'#ff3131'}}>
+            <Text style={[styles.songInfo, { color: darkMode }]}>Titre : {songInfo.title}</Text>
+            <Text style={[styles.artistInfo, { color: darkMode }]}>Artiste : {songInfo.artist}</Text>
           </View>
         )}
 
         {duration > 0 && isControlsVisible && (
           <View style={styles.progressContainer}>
-            <Text style={{ color: darkMode }}>
+            <Text style={{ color: darkMode,paddingLeft:12}}>
               {formatTime(currentPosition)} / {formatTime(duration)}
             </Text>
             <Slider
@@ -142,9 +139,9 @@ export default function HomeScreen() {
               maximumValue={duration}
               value={currentPosition}
               onSlidingComplete={handleSeek}
-              thumbTintColor="#ff3131"
-              minimumTrackTintColor="#ff3131"
-              maximumTrackTintColor="#d3d3d3"
+              thumbTintColor={darkMode}
+              minimumTrackTintColor={darkMode}
+              maximumTrackTintColor="black"
             />
           </View>
         )}
@@ -210,13 +207,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingVertical: 15,
+    backgroundColor: '#ff3131'
   },
   progressContainer: {
-    padding: 20,
-    alignItems: 'center',
+    backgroundColor: '#ff3131'
   },
   progressBar: {
     width: '100%',
+    backgroundColor: '#ff3131'
   },
 });
 

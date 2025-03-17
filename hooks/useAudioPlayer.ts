@@ -65,7 +65,7 @@ export default function useAudioPlayer() {
     }
 
     if (status.didJustFinish) {
-      playNext();  // Avance au morceau suivant dès que celui-ci est terminé
+      playNext();  
     }
 
     if (status.isPlaying !== undefined) {
@@ -75,9 +75,9 @@ export default function useAudioPlayer() {
 
   const playNext = useCallback(async () => {
     if (trackList.length > 0 && !isProcessing && isLoaded) {
-      const nextIndex = (currentIndex + 1) % trackList.length; // Avance au morceau suivant
+      const nextIndex = (currentIndex + 1) % trackList.length; 
       setCurrentIndex(nextIndex);
-      await playSound(trackList[nextIndex], true); // Réinitialise la position à 0 pour le nouveau morceau
+      await playSound(trackList[nextIndex], true); 
     }
   }, [currentIndex, trackList, playSound, isProcessing, isLoaded]);
 
