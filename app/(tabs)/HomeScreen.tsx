@@ -16,7 +16,7 @@ export default function HomeScreen() {
   const currentPositionRef = useRef(currentPosition);
   const updatePositionRef = useRef(false);
 
-  const colorScheme = useColorScheme(); // Détection du mode sombre
+  const colorScheme = useColorScheme();
 
   useEffect(() => {
     const loadAudioFiles = async () => {
@@ -38,12 +38,22 @@ export default function HomeScreen() {
     loadAudioFiles();
   }, []);
 
+  const splitArtistAndTitle = (filename) => {
+    const match = filename.match(/^(.+?)\s*-\s*(.+?)\.[a-zA-Z0-9]+$/);
+    if (match) {
+      return { artist: match[1], title: match[2] };
+    }
+    return { artist: 'Inconnu', title: filename };
+  };
+
   const getSongInfo = async (uri) => {
     const asset = audioFiles.find(item => item.uri === uri);
     if (asset) {
-      const { filename, artist, album } = asset;
+      const { filename } = asset;
+      const { artist, title } = splitArtistAndTitle(filename);
       setSongInfo({
-        title: filename || 'Inconnu',
+        title: title || 'Inconnu',
+        artist: artist || 'Inconnu',
       });
     }
   };
@@ -79,7 +89,6 @@ export default function HomeScreen() {
     }
   }, [currentIndex, audioFiles]);
 
-  // Fonction pour convertir les secondes en minutes:secondes
   const formatTime = (milliseconds: number) => {
     const totalSeconds = Math.floor(milliseconds / 1000);
     const minutes = Math.floor(totalSeconds / 60);
@@ -92,7 +101,6 @@ export default function HomeScreen() {
   const dynamicStyles = isDarkMode ? darkStyles : lightStyles;
   const darkMode = isDarkMode ? 'white' : 'black';
 
-  // Détecter si un son est en cours de lecture
   const isControlsVisible = currentIndex !== null && songInfo !== null;
 
   return (
@@ -113,15 +121,16 @@ export default function HomeScreen() {
           )}
         />
 
-        {isPlaying && songInfo && (
-          <View>
-            <Text style={[styles.songInfo, { color: darkMode }]}>{songInfo.title}</Text>
+        {songInfo && (
+          <View style={{backgroundColor:'#ff3131'}}>
+            <Text style={[styles.songInfo, { color: darkMode }]}>Titre : {songInfo.title}</Text>
+            <Text style={[styles.artistInfo, { color: darkMode }]}>Artiste : {songInfo.artist}</Text>
           </View>
         )}
 
         {duration > 0 && isControlsVisible && (
           <View style={styles.progressContainer}>
-            <Text style={{ color: darkMode }}>
+            <Text style={{ color: darkMode,paddingLeft:12}}>
               {formatTime(currentPosition)} / {formatTime(duration)}
             </Text>
             <Slider
@@ -130,9 +139,9 @@ export default function HomeScreen() {
               maximumValue={duration}
               value={currentPosition}
               onSlidingComplete={handleSeek}
-              thumbTintColor="#ff3131"
-              minimumTrackTintColor="#ff3131"
-              maximumTrackTintColor="#d3d3d3"
+              thumbTintColor={darkMode}
+              minimumTrackTintColor={darkMode}
+              maximumTrackTintColor="black"
             />
           </View>
         )}
@@ -175,7 +184,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginVertical: 10,
   },
-
+  artistInfo: {
+    fontSize: 18,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginVertical: 5,
+  },
   audioText: {
     width: 250,
   },
@@ -193,13 +207,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingVertical: 15,
+    backgroundColor: '#ff3131'
   },
   progressContainer: {
-    padding: 20,
-    alignItems: 'center',
+    backgroundColor: '#ff3131'
   },
   progressBar: {
     width: '100%',
+    backgroundColor: '#ff3131'
   },
 });
 
