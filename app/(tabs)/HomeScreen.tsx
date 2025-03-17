@@ -1,20 +1,22 @@
 import React, { useEffect, useState, useRef } from 'react';
-import Slider from '@react-native-community/slider';  // Mise à jour de l'importation
+import Slider from '@react-native-community/slider';
 import * as MediaLibrary from 'expo-media-library';
-import { StyleSheet, Text, View, TouchableOpacity, FlatList } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, FlatList, useColorScheme } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import useAudioPlayer from '../../hooks/useAudioPlayer';
-import { debounce } from 'lodash';  // Ajout de lodash pour le debounce
+import { debounce } from 'lodash';
 
 export default function HomeScreen() {
   const { handleSelectTrack, pauseSound, playNext, playPrevious, setTracks, isPlaying, currentIndex, sound } = useAudioPlayer();
   const [audioFiles, setAudioFiles] = useState([]);
   const [songInfo, setSongInfo] = useState(null);
-  const [currentPosition, setCurrentPosition] = useState(0);  // Position actuelle de la chanson
-  const [duration, setDuration] = useState(0);  // Durée totale de la chanson
-  const currentPositionRef = useRef(currentPosition); // Utilisation de useRef pour éviter un re-rendu
-  const updatePositionRef = useRef(false); // Pour suivre si le debounce est activé
+  const [currentPosition, setCurrentPosition] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const currentPositionRef = useRef(currentPosition);
+  const updatePositionRef = useRef(false);
+
+  const colorScheme = useColorScheme(); // Détection du mode sombre
 
   useEffect(() => {
     const loadAudioFiles = async () => {
@@ -36,15 +38,12 @@ export default function HomeScreen() {
     loadAudioFiles();
   }, []);
 
-  // Fonction pour récupérer les informations sur la chanson
   const getSongInfo = async (uri) => {
     const asset = audioFiles.find(item => item.uri === uri);
     if (asset) {
       const { filename, artist, album } = asset;
       setSongInfo({
         title: filename || 'Inconnu',
-        artist: artist || 'Artiste inconnu',
-        album: album || 'Album inconnu',
       });
     }
   };
@@ -54,7 +53,6 @@ export default function HomeScreen() {
     getSongInfo(uri);
   };
 
-  // Mettre à jour la position actuelle et la durée de la chanson
   useEffect(() => {
     if (sound) {
       const updatePosition = async () => {
@@ -63,86 +61,95 @@ export default function HomeScreen() {
         setDuration(status.durationMillis);
       };
 
-      const interval = setInterval(updatePosition, 1000); // Mettre à jour toutes les secondes
-      return () => clearInterval(interval); // Nettoyer l'intervalle lors de la fermeture de la chanson
+      const interval = setInterval(updatePosition, 1000);
+      return () => clearInterval(interval);
     }
   }, [sound]);
 
-  // Fonction pour changer la position de la chanson via la barre de progression
   const handleSeek = debounce(async (value) => {
     if (sound) {
       await sound.setPositionAsync(value);
     }
-  }, 200); // Limite à un appel tous les 200ms
+  }, 200);
 
-  // Mettre à jour les infos de la chanson à chaque changement de chanson
   useEffect(() => {
     if (audioFiles.length > 0 && currentIndex !== null) {
       const currentTrackUri = audioFiles[currentIndex]?.uri;
-      getSongInfo(currentTrackUri); // Mettre à jour les informations de la chanson actuelle
+      getSongInfo(currentTrackUri);
     }
   }, [currentIndex, audioFiles]);
 
+  // Fonction pour convertir les secondes en minutes:secondes
+  const formatTime = (milliseconds: number) => {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    return `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
+  };
+
+  const isDarkMode = colorScheme === 'dark';
+  const dynamicStyles = isDarkMode ? darkStyles : lightStyles;
+  const darkMode = isDarkMode ? 'white' : 'black';
+
+  // Détecter si un son est en cours de lecture
+  const isControlsVisible = currentIndex !== null && songInfo !== null;
+
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.sonsTitle}>Tous les sons</Text>
+      <SafeAreaView style={[styles.container, dynamicStyles.background]}>
+        <Text style={[styles.songTitle, dynamicStyles.text, { borderBottomColor: darkMode }]}>Tous les sons</Text>
 
         <FlatList
           data={audioFiles}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <TouchableOpacity
-              style={styles.audioItem}
+              style={[styles.audioItem, dynamicStyles.audioItem]}
               onPress={() => handleTrackSelection(item.uri)}>
               <MaterialIcons name="music-note" size={30} color="#ff3131" style={styles.musicIcon} />
-              <Text style={styles.audioText}>{item.filename}</Text>
+              <Text style={[styles.audioText, dynamicStyles.text]}>{item.filename}</Text>
             </TouchableOpacity>
           )}
         />
 
-        {/* Affichage des informations de la chanson actuelle, seulement si une chanson est en cours de lecture */}
         {isPlaying && songInfo && (
-          <View style={styles.songInfo}>
-            <Text style={styles.songTitle}>{songInfo.title}</Text>
-            <Text style={styles.songArtist}>{songInfo.artist}</Text>
-            <Text style={styles.songAlbum}>{songInfo.album}</Text>
+          <View>
+            <Text style={[styles.songInfo, { color: darkMode }]}>{songInfo.title}</Text>
           </View>
         )}
 
-        {/* Affichage des boutons de contrôle */}
-        {audioFiles.length > 0 && (
-          <View style={styles.controls}>
-            <TouchableOpacity onPress={playPrevious}>
-              <MaterialIcons name="skip-previous" size={40} color="white" />
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={isPlaying ? pauseSound : () => handleSelectTrack(audioFiles[currentIndex]?.uri)}>
-              <MaterialIcons name={isPlaying ? 'pause' : 'play-arrow'} size={40} color="white" />
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={playNext}>
-              <MaterialIcons name="skip-next" size={40} color="white" />
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Affichage de la barre de progression */}
-        {duration > 0 && (
+        {duration > 0 && isControlsVisible && (
           <View style={styles.progressContainer}>
-          <Text style={styles.progressText}>
-            {Math.floor(currentPosition / 1000)}s / {Math.floor(duration / 1000)}s
-          </Text>
+            <Text style={{ color: darkMode }}>
+              {formatTime(currentPosition)} / {formatTime(duration)}
+            </Text>
             <Slider
               style={styles.progressBar}
               minimumValue={0}
               maximumValue={duration}
               value={currentPosition}
-              onSlidingComplete={handleSeek} // Utilisation de onSlidingComplete au lieu de onValueChange
+              onSlidingComplete={handleSeek}
               thumbTintColor="#ff3131"
               minimumTrackTintColor="#ff3131"
               maximumTrackTintColor="#d3d3d3"
             />
+          </View>
+        )}
+
+        {isControlsVisible && (
+          <View style={styles.controls}>
+            <TouchableOpacity onPress={playPrevious}>
+              <MaterialIcons name="skip-previous" size={40} color={darkMode} />
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={isPlaying ? pauseSound : () => handleSelectTrack(audioFiles[currentIndex]?.uri)}>
+              <MaterialIcons name={isPlaying ? 'pause' : 'play-arrow'} size={40} color={darkMode} />
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={playNext}>
+              <MaterialIcons name="skip-next" size={40} color={darkMode} />
+            </TouchableOpacity>
           </View>
         )}
       </SafeAreaView>
@@ -155,51 +162,15 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'space-between',
   },
-  sonsTitle: {
+  songTitle: {
     fontSize: 30,
-    color: 'black',
     paddingLeft: 12,
     marginBottom: 10,
     borderBottomWidth: 1,
     borderStyle: 'dotted',
-    borderColor: 'black',
   },
   audioText: {
     width: 250,
-  },
-  songInfo: {
-    padding: 15,
-    backgroundColor: '#ff3131',
-    borderRadius: 10,
-    marginBottom: 20,
-    alignItems: 'center',
-    width: '90%',
-    alignSelf: 'center',
-  },
-  songTitle: {
-    fontSize: 18,
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 5,
-  },
-  songArtist: {
-    fontSize: 16,
-    color: 'white',
-    textAlign: 'center',
-    marginBottom: 5,
-  },
-  songAlbum: {
-    fontSize: 16,
-    color: 'white',
-    textAlign: 'center',
-  },
-  controls: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: '#ff3131',
-    paddingVertical: 15,
   },
   audioItem: {
     flexDirection: 'row',
@@ -208,20 +179,43 @@ const styles = StyleSheet.create({
     padding: 15,
     marginHorizontal: 20,
     marginVertical: 5,
-    backgroundColor: 'white',
     borderRadius: 8,
     elevation: 2,
   },
-  musicIcon: {
-    borderRightWidth: 1,
-    borderRightColor: 'black',
-    borderStyle: 'solid',
+  controls: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 15,
   },
   progressContainer: {
     padding: 20,
     alignItems: 'center',
   },
   progressBar: {
-    width: '80%',
+    width: '100%',
+  },
+});
+
+const lightStyles = StyleSheet.create({
+  background: {
+    backgroundColor: 'white',
+  },
+  text: {
+    color: 'black',
+  },
+  audioItem: {
+    backgroundColor: 'white',
+  },
+});
+
+const darkStyles = StyleSheet.create({
+  background: {
+    backgroundColor: '#121212',
+  },
+  text: {
+    color: 'white',
+  },
+  audioItem: {
+    backgroundColor: '#1f1f1f',
   },
 });

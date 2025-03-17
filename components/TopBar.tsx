@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { Image, StyleSheet, Text, View, TouchableOpacity, TextInput, Keyboard, ViewStyle } from 'react-native';
+import { Image, TextInput, View, TouchableOpacity, Keyboard } from 'react-native';
 import EvilIcons from 'react-native-vector-icons/EvilIcons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface TopBarProps {
-  style?: ViewStyle; 
+  isDarkMode: boolean;
 }
 
-export default function TopBar({ style }: TopBarProps) {
+export default function TopBar({ isDarkMode }: TopBarProps) {
   const [searchText, setSearchText] = useState('');
 
   const handleSearch = () => {
@@ -17,48 +17,63 @@ export default function TopBar({ style }: TopBarProps) {
   };
 
   return (
-      <SafeAreaView>
-        <View style={[styles.topView, style]}>
-          <Image
-            style={styles.logo}
-            source={require('@/assets/images/vazo-logo.png')}
-          />
-          <View style={styles.rightTopBar}>
-            <View style={styles.searchBar}>
-              <TextInput
-                style={styles.input}
-                placeholder="Chercher un son..."
-                value={searchText}
-                onChangeText={setSearchText}
-                onSubmitEditing={handleSearch}
-                autoFocus
-              />
-              <TouchableOpacity>
-                <EvilIcons name="search" size={30} />
-              </TouchableOpacity>
-            </View>
-            <MaterialIcons name="light-mode" size={30} color="black" />
+    <SafeAreaView>
+      <View style={{
+        borderBottomColor: isDarkMode ? '#fff' : 'black', backgroundColor: isDarkMode ? '#222' : '#fff', display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        borderBottomWidth: 1,
+        borderStyle: 'dotted',
+        height: 70,
+      }}>
+        <Image
+          style={[
+            styles.logo,
+            { tintColor: isDarkMode ? '#ff3131' : 'black' }
+          ]}
+          source={require('@/assets/images/vazo-logo.png')}
+        />
+        <View style={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 15,
+          marginRight: 10,
+        }}>
+          <View style={{
+            backgroundColor: isDarkMode ? '#444' : 'white', borderColor: '#ff3131',
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-evenly',
+            borderRadius: 20,
+            borderWidth: 1,
+          }}>
+            <TextInput
+              style={{ color: isDarkMode ? '#fff' : '#000', width: 200, paddingLeft: 12 }}
+              placeholder="Chercher un son..."
+              placeholderTextColor={isDarkMode ? '#ccc' : '#333'}
+              value={searchText}
+              onChangeText={setSearchText}
+              onSubmitEditing={handleSearch}
+            />
+            <TouchableOpacity>
+              <EvilIcons name="search" size={30} color={isDarkMode ? '#fff' : '#000'} />
+            </TouchableOpacity>
           </View>
+          <MaterialIcons name={isDarkMode ? "dark-mode" : "light-mode"} size={30} color={isDarkMode ? '#ff3131' : '#000'} />
         </View>
-      </SafeAreaView>
+      </View>
+    </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+const styles = {
   logo: {
     width: 100,
     height: 100,
     marginTop: 6,
-  },
-  topView: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: 'black',
-    borderStyle: 'dotted',
-    height: 70,
   },
   input: {
     backgroundColor: 'transparent',
@@ -71,22 +86,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-evenly',
-    backgroundColor: 'white',
     borderRadius: 20,
-    borderStyle: 'solid',
-    borderColor: '#ff3131',
     borderWidth: 1,
-  },
-  rightTopBar: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 15,
-    marginRight: 10,
   },
   audioFiles: {
     display: 'flex',
     flexDirection: 'column',
     marginLeft: 10,
   },
-});
+};
