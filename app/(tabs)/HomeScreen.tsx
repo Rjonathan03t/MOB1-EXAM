@@ -16,8 +16,8 @@ export default function HomeScreen() {
   const currentPositionRef = useRef(currentPosition);
   const updatePositionRef = useRef(false);
 
-  const colorScheme = useColorScheme(); // Détection du mode sombre
-
+  const colorScheme = useColorScheme();
+  
   useEffect(() => {
     const loadAudioFiles = async () => {
       const { status } = await MediaLibrary.requestPermissionsAsync();
@@ -38,12 +38,24 @@ export default function HomeScreen() {
     loadAudioFiles();
   }, []);
 
+  const splitArtistAndTitle = (filename) => {
+    // Assumer un format comme "artist - title.mp3"
+    const match = filename.match(/^(.+?)\s*-\s*(.+?)\.[a-zA-Z0-9]+$/);
+    if (match) {
+      return { artist: match[1], title: match[2] };
+    }
+    // Si le format ne correspond pas, retourner des valeurs par défaut
+    return { artist: 'Inconnu', title: filename };
+  };
+
   const getSongInfo = async (uri) => {
     const asset = audioFiles.find(item => item.uri === uri);
     if (asset) {
-      const { filename, artist, album } = asset;
+      const { filename } = asset;
+      const { artist, title } = splitArtistAndTitle(filename);
       setSongInfo({
-        title: filename || 'Inconnu',
+        title: title || 'Inconnu',
+        artist: artist || 'Inconnu',
       });
     }
   };
@@ -79,7 +91,6 @@ export default function HomeScreen() {
     }
   }, [currentIndex, audioFiles]);
 
-  // Fonction pour convertir les secondes en minutes:secondes
   const formatTime = (milliseconds: number) => {
     const totalSeconds = Math.floor(milliseconds / 1000);
     const minutes = Math.floor(totalSeconds / 60);
@@ -116,6 +127,7 @@ export default function HomeScreen() {
         {isPlaying && songInfo && (
           <View>
             <Text style={[styles.songInfo, { color: darkMode }]}>{songInfo.title}</Text>
+            <Text style={[styles.artistInfo, { color: darkMode }]}>{songInfo.artist}</Text>
           </View>
         )}
 
@@ -175,7 +187,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginVertical: 10,
   },
-
+  artistInfo: {
+    fontSize: 18,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginVertical: 5,
+  },
   audioText: {
     width: 250,
   },
