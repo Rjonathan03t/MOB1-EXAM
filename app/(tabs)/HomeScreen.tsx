@@ -48,12 +48,23 @@ export default function HomeScreen() {
     }
   }, [sound]);
 
+  const splitArtistAndTitle = (filename) => {
+    const match = filename.match(/^(.+?)\s*-\s*(.+?)\.[a-zA-Z0-9]+$/);
+    if (match) {
+      return { artist: match[1], title: match[2] };
+    }
+    return { artist: 'Inconnu', title: filename };
+  };
+
   const getSongInfo = async (uri) => {
     const asset = audioFiles.find(item => item.uri === uri);
     if (asset) {
       const { filename } = asset;
-      const [artist, title] = filename.split(' - ');
-      setSongInfo({ title, artist });
+      const { artist, title } = splitArtistAndTitle(filename);
+      setSongInfo({
+        title: title || 'Inconnu',
+        artist: artist || 'Inconnu',
+      });
     }
   };
 

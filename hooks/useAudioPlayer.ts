@@ -11,7 +11,6 @@ export default function useAudioPlayer() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Gestion des playlists
   const [playlists, setPlaylists] = useState<{ [key: string]: string[] }>({});
 
   useEffect(() => {
@@ -96,21 +95,17 @@ export default function useAudioPlayer() {
     }
   };
 
-  // Ajout d'une fonction de contrôle de la piste (play/pause)
   const handleSelectTrack = (uri: string) => {
     if (isProcessing) return;
     const trackIndex = trackList.indexOf(uri);
     if (trackIndex === -1) return;
 
     if (trackIndex !== currentIndex) {
-      // Si une nouvelle piste est sélectionnée, on la joue
       setCurrentIndex(trackIndex);
       playSound(uri, true);
     } else if (isPlaying) {
-      // Si la musique est en cours de lecture, on la met en pause
       pauseSound();
     } else {
-      // Si la musique est en pause, on la reprend
       resumeSound();
     }
   };
@@ -121,8 +116,6 @@ export default function useAudioPlayer() {
       setIsPlaying(false);
     }
   };
-
-  // Fonction pour reprendre la lecture du son
   const resumeSound = async () => {
     if (sound) {
       await sound.playAsync();

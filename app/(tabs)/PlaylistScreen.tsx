@@ -4,8 +4,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as MediaLibrary from "expo-media-library";
 import useAudioPlayer from "../../hooks/useAudioPlayer";
-import Slider from "@react-native-community/slider";
-import AudioItem from "@/components/AudioItem";
 import PlayerControl from "@/components/PlayerControl";
 import SongInfo from "@/components/SongInfo";
 

@@ -18,12 +18,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    textAlign: 'left',
+    textAlign: 'center',
+    marginBottom:12
   },
   artist: {
     fontSize: 18,
     fontStyle: 'italic',
-    textAlign: 'left',
+    textAlign: 'center',
   },
 });
 
