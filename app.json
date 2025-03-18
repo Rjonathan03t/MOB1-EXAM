@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "mob1-exam",
-    "slug": "mob1-exam",
+    "name": "Vazo",
+    "slug": "mob1-project",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/images/vazo-splash-screen.png",
@@ -47,8 +47,9 @@
         "origin": false
       },
       "eas": {
-        "projectId": "746dd79d-0f3f-4e61-b978-95581601825d"
+        "projectId": "6ed390fe-f0bb-403d-b2d2-16168ae338e7"
       }
-    }
+    },
+    "owner": "nathanrajao"
   }
 }
