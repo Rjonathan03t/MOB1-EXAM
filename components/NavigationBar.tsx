@@ -1,6 +1,7 @@
 import React from 'react';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import HomeScreen from '@/app/(tabs)/HomeScreen';
+import PlaylistScreen from '@/app/(tabs)/PlaylistScreen';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -31,7 +32,7 @@ export default function NavigationBar({ isDarkMode }: NavigationBarProps) {
       }}
     >
       <Tab.Screen name="Sons" component={HomeScreen} />
-      <Tab.Screen name="PlayList" component={HomeScreen} />
+      <Tab.Screen name="PlayList" component={PlaylistScreen} />
       <Tab.Screen name="Paramètres" component={HomeScreen} />
     </Tab.Navigator>
   );
