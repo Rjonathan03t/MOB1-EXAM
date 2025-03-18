@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, View, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import useAudioPlayer from '../../hooks/useAudioPlayer';
@@ -68,8 +68,13 @@ export default function HomeScreen() {
     }
   };
 
-  const handleTrackSelection = (uri) => {
-    handleSelectTrack(uri);
+  const handleTrackSelection = async (uri) => {
+    // If sound is not initialized yet, handle selection and initialize the sound
+    if (!sound) {
+      handleSelectTrack(uri); // initialize the sound
+    } else {
+      handleSelectTrack(uri); // Proceed to select the track
+    }
     getSongInfo(uri);
   };
 
@@ -96,16 +101,20 @@ export default function HomeScreen() {
         )}
       />
       <SongInfo songInfo={songInfo} colorScheme={colorScheme} />
-      <PlayerControl
-        isPlaying={isPlaying}
-        currentPosition={currentPosition}
-        duration={duration}
-        onSeek={(value) => sound && sound.setPositionAsync(value)}
-        onPlayPause={isPlaying ? pauseSound : () => handleSelectTrack(audioFiles[currentIndex]?.uri)}
-        onPrevious={handlePrevious}
-        onNext={handleNext}
-        colorScheme={colorScheme}
-      />
+      
+      {/* Show PlayerControl only if a sound is selected */}
+      {currentIndex !== null && sound && (
+        <PlayerControl
+          isPlaying={isPlaying}
+          currentPosition={currentPosition}
+          duration={duration}
+          onSeek={(value) => sound && sound.setPositionAsync(value)}
+          onPlayPause={isPlaying ? pauseSound : () => handleSelectTrack(audioFiles[currentIndex]?.uri)}
+          onPrevious={handlePrevious}
+          onNext={handleNext}
+          colorScheme={colorScheme}
+        />
+      )}
     </SafeAreaView>
   );
 }
